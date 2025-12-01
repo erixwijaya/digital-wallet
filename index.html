@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Wallet - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      #app {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header {
+        background: white;
+        padding: 20px 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header h1 {
+        color: #667eea;
+        font-size: 28px;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 20px;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #dc2626;
+      }
+
+      .login-container {
+        max-width: 400px;
+        margin: 100px auto;
+        background: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .login-container h2 {
+        color: #667eea;
+        margin-bottom: 30px;
+        text-align: center;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #4b5563;
+        font-weight: 500;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border 0.3s;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+      }
+
+      .card {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .card h3 {
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 20px;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 10px;
+      }
+
+      .wallet-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+      }
+
+      .wallet-card h3 {
+        color: white;
+        border-bottom-color: rgba(255, 255, 255, 0.3);
+      }
+
+      .balance {
+        font-size: 36px;
+        font-weight: bold;
+        margin: 20px 0;
+      }
+
+      .currency {
+        font-size: 16px;
+        opacity: 0.9;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .transaction-item {
+        padding: 15px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .transaction-item:last-child {
+        border-bottom: none;
+      }
+
+      .transaction-info {
+        flex: 1;
+      }
+
+      .transaction-type {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 5px;
+      }
+
+      .transaction-desc {
+        font-size: 13px;
+        color: #6b7280;
+      }
+
+      .transaction-amount {
+        font-weight: bold;
+        font-size: 16px;
+      }
+
+      .amount-positive {
+        color: #10b981;
+      }
+
+      .amount-negative {
+        color: #ef4444;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #9ca3af;
+      }
+
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .modal-header h3 {
+        color: #667eea;
+      }
+
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #9ca3af;
+      }
+
+      .close-btn:hover {
+        color: #4b5563;
+      }
+
+      .error-message {
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      .success-message {
+        background: #d1fae5;
+        color: #059669;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 20px;
+        color: #9ca3af;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .stat-item {
+        background: #f3f4f6;
+        padding: 15px;
+        border-radius: 8px;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 5px;
+      }
+
+      .stat-value {
+        font-size: 20px;
+        font-weight: bold;
+        color: #1f2937;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Login Screen -->
+      <div v-if="!isLoggedIn" class="login-container">
+        <h2>🔐 Login Digital Wallet</h2>
+
+        <div v-if="error" class="error-message">{{ error }}</div>
+
+        <form @submit.prevent="login">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" v-model="loginForm.email" required placeholder="john@example.com" />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" v-model="loginForm.password" required placeholder="••••••••" />
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%">Login</button>
+        </form>
+
+        <p style="text-align: center; margin-top: 20px; color: #6b7280">Demo: john@example.com / password123</p>
+      </div>
+
+      <!-- Dashboard -->
+      <div v-if="isLoggedIn">
+        <div class="header">
+          <h1>💳 Digital Wallet</h1>
+          <div class="user-info">
+            <div>
+              <div style="font-weight: 600; color: #1f2937">{{ user.name }}</div>
+              <div style="font-size: 13px; color: #6b7280">{{ user.email }}</div>
+            </div>
+            <div class="user-avatar">{{ user.name.charAt(0) }}</div>
+            <button @click="logout" class="btn btn-danger">Logout</button>
+          </div>
+        </div>
+
+        <div v-if="success" class="success-message">{{ success }}</div>
+        <div v-if="error" class="error-message">{{ error }}</div>
+
+        <div class="dashboard">
+          <!-- Wallet Card -->
+          <div class="card wallet-card">
+            <h3>💰 Saldo Wallet</h3>
+            <div v-if="wallet">
+              <div class="balance">Rp {{ formatCurrency(wallet.balance) }}</div>
+              <div class="currency">Indonesian Rupiah (IDR)</div>
+              <div class="action-buttons">
+                <button @click="showTopupModal = true" class="btn" style="background: white; color: #667eea; flex: 1">Top Up</button>
+                <button @click="showPaymentModal = true" class="btn" style="background: rgba(255, 255, 255, 0.2); color: white; flex: 1">Bayar</button>
+              </div>
+            </div>
+            <div v-else class="loading">Loading wallet...</div>
+          </div>
+
+          <!-- Transaction Statistics -->
+          <div class="card">
+            <h3>📊 Statistik Transaksi</h3>
+            <div v-if="stats" class="stats-grid">
+              <div class="stat-item">
+                <div class="stat-label">Total Transaksi</div>
+                <div class="stat-value">{{ stats.total_transactions }}</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">Total Top Up</div>
+                <div class="stat-value">Rp {{ formatCurrency(stats.total_topup) }}</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">Total Pembayaran</div>
+                <div class="stat-value">Rp {{ formatCurrency(stats.total_payment) }}</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">Net Amount</div>
+                <div class="stat-value">Rp {{ formatCurrency(stats.net_amount) }}</div>
+              </div>
+            </div>
+            <div v-else class="loading">Loading stats...</div>
+          </div>
+
+          <!-- Recent Transactions -->
+          <div class="card" style="grid-column: 1 / -1">
+            <h3>📝 Riwayat Transaksi</h3>
+            <div v-if="transactions.length > 0">
+              <div v-for="tx in transactions" :key="tx.id" class="transaction-item">
+                <div class="transaction-info">
+                  <div class="transaction-type">{{ tx.type.toUpperCase() }}</div>
+                  <div class="transaction-desc">{{ tx.description }}</div>
+                  <div style="font-size: 12px; color: #9ca3af; margin-top: 3px">{{ formatDate(tx.created_at) }}</div>
+                </div>
+                <div class="transaction-amount" :class="tx.type === 'topup' ? 'amount-positive' : 'amount-negative'">{{ tx.type === 'topup' ? '+' : '-' }}Rp {{ formatCurrency(tx.amount) }}</div>
+              </div>
+            </div>
+            <div v-else class="empty-state">Belum ada transaksi</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Up Modal -->
+      <div v-if="showTopupModal" class="modal" @click.self="showTopupModal = false">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>💰 Top Up Wallet</h3>
+            <button class="close-btn" @click="showTopupModal = false">&times;</button>
+          </div>
+          <form @submit.prevent="topupWallet">
+            <div class="form-group">
+              <label>Jumlah Top Up (Rp)</label>
+              <input type="number" v-model="topupAmount" required min="10000" step="1000" placeholder="50000" />
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%">Top Up Sekarang</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Payment Modal -->
+      <div v-if="showPaymentModal" class="modal" @click.self="showPaymentModal = false">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>💳 Bayar Merchant</h3>
+            <button class="close-btn" @click="showPaymentModal = false">&times;</button>
+          </div>
+          <form @submit.prevent="makePayment">
+            <div class="form-group">
+              <label>Nama Merchant</label>
+              <input type="text" v-model="paymentForm.merchant" required placeholder="Tokopedia" />
+            </div>
+            <div class="form-group">
+              <label>Jumlah Pembayaran (Rp)</label>
+              <input type="number" v-model="paymentForm.amount" required min="1000" step="1000" placeholder="50000" />
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%">Bayar Sekarang</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const { createApp } = Vue;
+
+      createApp({
+        data() {
+          return {
+            API_URL: "http://localhost:5050/api",
+            isLoggedIn: false,
+            token: null,
+            user: null,
+            wallet: null,
+            transactions: [],
+            stats: null,
+            error: null,
+            success: null,
+            loginForm: {
+              email: "john@example.com",
+              password: "password123",
+            },
+            showTopupModal: false,
+            showPaymentModal: false,
+            topupAmount: 100000,
+            paymentForm: {
+              merchant: "",
+              amount: 50000,
+            },
+          };
+        },
+        methods: {
+          async login() {
+            try {
+              this.error = null;
+              const response = await axios.post(`${this.API_URL}/auth/login`, this.loginForm);
+
+              this.token = response.data.token;
+              this.user = response.data.user;
+              this.isLoggedIn = true;
+
+              localStorage.setItem("token", this.token);
+              localStorage.setItem("user", JSON.stringify(this.user));
+
+              await this.loadDashboardData();
+            } catch (error) {
+              this.error = error.response?.data?.error || "Login failed";
+            }
+          },
+
+          logout() {
+            this.isLoggedIn = false;
+            this.token = null;
+            this.user = null;
+            this.wallet = null;
+            this.transactions = [];
+            this.stats = null;
+
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+          },
+
+          async loadDashboardData() {
+            await Promise.all([this.loadWallet(), this.loadTransactions(), this.loadStats()]);
+          },
+
+          async loadWallet() {
+            try {
+              const response = await axios.get(`${this.API_URL}/wallets`, {
+                headers: { Authorization: `Bearer ${this.token}` },
+              });
+
+              if (response.data.wallets && response.data.wallets.length > 0) {
+                this.wallet = response.data.wallets[0];
+              }
+            } catch (error) {
+              console.error("Failed to load wallet:", error);
+            }
+          },
+
+          async loadTransactions() {
+            try {
+              const response = await axios.get(`${this.API_URL}/transactions`, {
+                headers: { Authorization: `Bearer ${this.token}` },
+              });
+
+              this.transactions = response.data.transactions.slice(0, 10);
+            } catch (error) {
+              console.error("Failed to load transactions:", error);
+            }
+          },
+
+          async loadStats() {
+            try {
+              const response = await axios.get(`${this.API_URL}/transactions/stats`, {
+                headers: { Authorization: `Bearer ${this.token}` },
+              });
+
+              this.stats = response.data;
+            } catch (error) {
+              console.error("Failed to load stats:", error);
+            }
+          },
+
+          async topupWallet() {
+            try {
+              this.error = null;
+              this.success = null;
+
+              await axios.post(`${this.API_URL}/wallets/${this.wallet.id}/topup`, { amount: parseInt(this.topupAmount) }, { headers: { Authorization: `Bearer ${this.token}` } });
+
+              this.success = "Top up berhasil!";
+              this.showTopupModal = false;
+              this.topupAmount = 100000;
+
+              await this.loadDashboardData();
+
+              setTimeout(() => (this.success = null), 3000);
+            } catch (error) {
+              this.error = error.response?.data?.error || "Top up gagal";
+            }
+          },
+
+          async makePayment() {
+            try {
+              this.error = null;
+              this.success = null;
+
+              await axios.post(
+                `${this.API_URL}/payments/pay`,
+                {
+                  wallet_id: this.wallet.id,
+                  merchant: this.paymentForm.merchant,
+                  amount: parseInt(this.paymentForm.amount),
+                },
+                { headers: { Authorization: `Bearer ${this.token}` } }
+              );
+
+              this.success = "Pembayaran berhasil!";
+              this.showPaymentModal = false;
+              this.paymentForm = { merchant: "", amount: 50000 };
+
+              await this.loadDashboardData();
+
+              setTimeout(() => (this.success = null), 3000);
+            } catch (error) {
+              this.error = error.response?.data?.error || "Pembayaran gagal";
+            }
+          },
+
+          formatCurrency(amount) {
+            return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+          },
+
+          formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString("id-ID", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+          },
+
+          checkAuth() {
+            const token = localStorage.getItem("token");
+            const user = localStorage.getItem("user");
+
+            if (token && user) {
+              this.token = token;
+              this.user = JSON.parse(user);
+              this.isLoggedIn = true;
+              this.loadDashboardData();
+            }
+          },
+        },
+        mounted() {
+          this.checkAuth();
+        },
+      }).mount("#app");
+    </script>
+  </body>
+</html>

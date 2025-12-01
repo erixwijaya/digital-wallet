@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: ../Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - SECRET_KEY=digital-wallet-secret-key-2024
+    networks:
+      - wallet-network
+    restart: unless-stopped
+
+  wallet-service:
+    build:
+      context: ./wallet-service
+      dockerfile: ../Dockerfile
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - SECRET_KEY=digital-wallet-secret-key-2024
+      - USER_SERVICE_URL=http://user-service:5001
+      - REQUEST_TIMEOUT=5
+    depends_on:
+      - user-service
+    networks:
+      - wallet-network
+    restart: unless-stopped
+
+  transaction-service:
+    build:
+      context: ./transaction-service
+      dockerfile: ../Dockerfile
+    ports:
+      - "5003:5003"
+    environment:
+      - PORT=5003
+      - SECRET_KEY=digital-wallet-secret-key-2024
+      - WALLET_SERVICE_URL=http://wallet-service:5002
+      - REQUEST_TIMEOUT=5
+    depends_on:
+      - wallet-service
+    networks:
+      - wallet-network
+    restart: unless-stopped
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: ../Dockerfile
+    ports:
+      - "5004:5004"
+    environment:
+      - PORT=5004
+      - SECRET_KEY=digital-wallet-secret-key-2024
+      - WALLET_SERVICE_URL=http://wallet-service:5002
+      - TRANSACTION_SERVICE_URL=http://transaction-service:5003
+      - REQUEST_TIMEOUT=5
+    depends_on:
+      - wallet-service
+      - transaction-service
+    networks:
+      - wallet-network
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: ../Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - USER_SERVICE_URL=http://user-service:5001
+      - WALLET_SERVICE_URL=http://wallet-service:5002
+      - TRANSACTION_SERVICE_URL=http://transaction-service:5003
+      - PAYMENT_SERVICE_URL=http://payment-service:5004
+      - REQUEST_TIMEOUT=5
+    depends_on:
+      - user-service
+      - wallet-service
+      - transaction-service
+      - payment-service
+    networks:
+      - wallet-network
+    restart: unless-stopped
+
+networks:
+  wallet-network:
+    driver: bridge
